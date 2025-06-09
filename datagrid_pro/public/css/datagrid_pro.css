@@ -1,0 +1,37 @@
+
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+       
+        
+        #dx-grid-container {
+            margin: 0;
+            height: calc(100vh - 180px);
+        }
+        
+        
+        .dx-datagrid-rowsview .dx-row-focused.dx-data-row .dx-command-select {
+            background-color: transparent;
+        }
+        
+        .dx-toolbar .dx-toolbar-items-container {
+            height: 50px;
+            padding: 0 15px;
+        }
+        
+        .dx-datagrid-headers .dx-datagrid-table .dx-row > td {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        
+        .dx-button {
+            border-radius: 4px !important;
+        }
+        
+        .dx-button-mode-contained {
+            box-shadow: none !important;
+        }
