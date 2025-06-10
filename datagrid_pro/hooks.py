@@ -24,10 +24,19 @@ app_license = "mit"
 # Includes in <head>
 # ------------------
 
-# include js, css files in header of desk.html
-# app_include_css = "/assets/datagrid_pro/css/datagrid_pro.css"
-# app_include_js = "/assets/datagrid_pro/js/datagrid_pro.js"
+app_include_js = [
+    "https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.4.0/polyfill.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js",
+    "/assets/datagrid_pro/js/datagrid_pro.js",
+    "/assets/datagrid_pro/js/dx.all.js"
+]
+ 
+app_include_css = [
+    "/assets/datagrid_pro/css/dx.material.blue.light.css",
+        "/assets/datagrid_pro/css/datagrid_pro.css"
 
+]
 # include js, css files in header of web template
 # web_include_css = "/assets/datagrid_pro/css/datagrid_pro.css"
 # web_include_js = "/assets/datagrid_pro/js/datagrid_pro.js"
