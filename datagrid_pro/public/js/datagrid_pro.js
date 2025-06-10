@@ -6,6 +6,8 @@ frappe.views.ListView = class DevExtremeListView extends frappe.views.ListView {
         this.tags_shown =false;
         this.gridInstance = null; 
         this.grid_wrapper_class = `devextreme-list-view-wrapper-${this.doctype.replace(/\s+/g, '_')}`;
+        return this.get_list_view_settings();
+
     }
     toggle_tags() {
 		this.tags_shown = !this.tags_shown;
@@ -85,6 +87,7 @@ try {
     
     await this.setup_columns();
 } catch (error) {
+console.log(error);
 
     
     this.refresh();
