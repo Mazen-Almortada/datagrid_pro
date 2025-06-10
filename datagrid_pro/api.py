@@ -2,11 +2,9 @@ import frappe
 import json
 from frappe.utils import cstr
 from frappe.query_builder import Order, Criterion
-# --- MODIFIED: Added GroupConcat import ---
 from frappe.query_builder.functions import Count, Coalesce, GroupConcat
 from pypika import Field
 
-# --- Helper Function to Parse DevExtreme Filters (UNCHANGED) ---
 def build_qb_criterion_from_dx_filters(dx_filters, doctype, valid_grid_columns):
     DocTypeTableQB = frappe.qb.DocType(doctype)
 
@@ -68,7 +66,6 @@ def build_qb_criterion_from_dx_filters(dx_filters, doctype, valid_grid_columns):
         return None
     return parse_element(dx_filters)
 
-# --- Helper Function to Parse Frappe Filters (UNCHANGED) ---
 def build_qb_criterion_from_frappe_filters(frappe_filters, doctype):
     if not frappe_filters:
         return None
@@ -78,23 +75,20 @@ def build_qb_criterion_from_frappe_filters(frappe_filters, doctype):
         if len(f) != 4: continue
         filter_doctype, fieldname, operator, value = f[0], f[1], f[2], f[3]
         op = operator.lower()
-        # --- MODIFIED: Handle _user_tags filter ---
         if fieldname == "_user_tags":
             TagLinkQB = frappe.qb.DocType("Tag Link")
             
             if op in ("like", "not like"):
-                # Subquery for documents with a specific tag
                 sub_query = (frappe.qb.from_(TagLinkQB)
                     .select(TagLinkQB.document_name)
                     .where((TagLinkQB.document_type == doctype) & (TagLinkQB.tag.like(value)))
                 )
                 if op == "like":
                     criteria.append(DocTypeTableQB.name.isin(sub_query))
-                else: # not like
+                else: 
                     criteria.append(DocTypeTableQB.name.notin(sub_query))
 
             elif op == "is" and value.lower() in ("set", "not set"):
-                # Subquery for documents that have ANY tag
                 sub_query = (frappe.qb.from_(TagLinkQB)
                     .select(TagLinkQB.document_name)
                     .where(TagLinkQB.document_type == doctype)
@@ -102,10 +96,10 @@ def build_qb_criterion_from_frappe_filters(frappe_filters, doctype):
                 )
                 if value.lower() == "set":
                     criteria.append(DocTypeTableQB.name.isin(sub_query))
-                else: # not set
+                else:
                     criteria.append(DocTypeTableQB.name.notin(sub_query))
             
-            continue # Continue to the next filter
+            continue
 
 
         field_term = getattr(DocTypeTableQB, fieldname)
@@ -132,7 +126,6 @@ def build_qb_criterion_from_frappe_filters(frappe_filters, doctype):
                 if op in ("descendants of (inclusive)", "descendants of"):
                     desc_names = frappe.db.get_all(linked_doctype, filters={"lft": [">=" if op == "descendants of (inclusive)" else ">", node.lft], "rgt": ["<=" if op == "descendants of (inclusive)" else "<", node.rgt]}, pluck="name")
                     if desc_names: criteria.append(field_term.isin(desc_names))
-                # ... (rest of tree filter logic is unchanged)
             except Exception as e:
                 frappe.log_error(f"Failed to process tree filter for {fieldname}: {e}", "DevExtreme Filter")
                 criteria.append(field_term.isnull() & field_term.isnotnull())
@@ -163,7 +156,6 @@ def get_devextreme_list_data(doctype, load_options_json, frappe_filters_json=Non
     fields_to_fetch = list(set(fields_to_fetch))
     
     valid_grid_columns = set(fields_to_fetch)
-    # --- MODIFIED: _user_tags is a calculated field, not a direct column for filtering ---
     if "_user_tags" in valid_grid_columns:
         valid_grid_columns.remove("_user_tags")
         
@@ -177,7 +169,6 @@ def get_devextreme_list_data(doctype, load_options_json, frappe_filters_json=Non
     response = {}
 
     if group_options and isinstance(group_options, list) and len(group_options) > 0:
-        # Grouping logic remains the same
         group_field_info = group_options[0]
         group_selector = cstr(group_field_info.get("selector")).strip()
         
@@ -212,10 +203,8 @@ def get_devextreme_list_data(doctype, load_options_json, frappe_filters_json=Non
         response["totalCount"] = count_query.run(as_list=True)[0][0] or 0
 
         CommentQB = frappe.qb.DocType("Comment")
-        # --- NEW: Define Tag Link DocType for subquery ---
         TagLinkQB = frappe.qb.DocType("Tag Link")
 
-        # --- NEW: Create subquery to aggregate tags ---
         user_tags_subquery = (
             frappe.qb.from_(TagLinkQB)
             .select(GroupConcat(TagLinkQB.tag))
@@ -231,12 +220,10 @@ def get_devextreme_list_data(doctype, load_options_json, frappe_filters_json=Non
             .where((CommentQB.reference_doctype == doctype) & (CommentQB.reference_name == DocTypeTableQB.name) & (CommentQB.comment_type == "Comment"))
         ).as_("comment_count")
         
-        # Remove calculated fields from direct fetch list
         if 'comment_count' in fields_to_fetch: fields_to_fetch.remove('comment_count')
         if '_user_tags' in fields_to_fetch: fields_to_fetch.remove('_user_tags')
 
         fields_for_select_statement = [getattr(DocTypeTableQB, f) for f in fields_to_fetch]
-        # --- MODIFIED: Add subqueries to the select statement ---
         fields_for_select_statement.append(comment_count_subquery)
         fields_for_select_statement.append(user_tags_subquery)
 
@@ -249,7 +236,6 @@ def get_devextreme_list_data(doctype, load_options_json, frappe_filters_json=Non
             for sort_item in sort_options:
                 if isinstance(sort_item, dict) and "selector" in sort_item:
                     field_selector = cstr(sort_item["selector"]).strip()
-                    # --- MODIFIED: Allow sorting by calculated fields ---
                     if field_selector in ["comment_count", "_user_tags"] or frappe.get_meta(doctype).has_field(field_selector) or field_selector in standard_system_fields_for_check:
                         field_term = Field(field_selector) if field_selector in ["comment_count", "_user_tags"] else getattr(DocTypeTableQB, field_selector)
                         direction = Order.desc if sort_item.get("desc") else Order.asc
