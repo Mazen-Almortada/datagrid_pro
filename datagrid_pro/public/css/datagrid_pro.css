@@ -4,15 +4,6 @@
             display: flex;
             gap: 10px;
         }
-        
-       
-        
-        #dx-grid-container {
-            margin: 0;
-            height: calc(100vh - 180px);
-        }
-        
-        
         .dx-datagrid-rowsview .dx-row-focused.dx-data-row .dx-command-select {
             background-color: transparent;
         }
@@ -23,9 +14,11 @@
         }
         
         .dx-datagrid-headers .dx-datagrid-table .dx-row > td {
-            font-weight: 600;
-            font-size: 13px;
+            
             color: var(--text-primary);
+        }
+        .dx-datagrid-content .dx-datagrid-table .dx-data-row > td {
+           /* white-space: nowrap; */
         }
         
         .dx-button {

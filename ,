@@ -1,0 +1,129 @@
+[1mdiff --git a/datagrid_pro/public/js/datagrid_pro.js b/datagrid_pro/public/js/datagrid_pro.js[m
+[1mindex 8abe03f..735947f 100644[m
+[1m--- a/datagrid_pro/public/js/datagrid_pro.js[m
+[1m+++ b/datagrid_pro/public/js/datagrid_pro.js[m
+[36m@@ -105,7 +105,7 @@[m [mconsole.log(error);[m
+                     caption: __(df.label || frappe.model.unscrub(df.fieldname)),[m
+                     dataType: map_frappe_field_type_to_dx(df.fieldtype),[m
+                     allowGrouping: !["modified", "email", "description", "_liked_by", "comment_count","_assign", "image", "subject", "name", meta.title_field].includes(df.fieldname),[m
+[31m-                    allowHeaderFiltering: !["name"].includes(df.fieldname) && df.fieldtype !=="Check",[m
+[32m+[m[32m                    allowHeaderFiltering: !["name"].includes(df.fieldname) && df.fieldtype !=="Check" && !(df.fieldtype === "Select" && df.options),[m[41m[m
+                     allowSorting: true,[m
+                     autoExpandGroup:false,[m
+                     headerFilter: { search: { [m
+[36m@@ -141,7 +141,7 @@[m [mconsole.log(error);[m
+             allowSorting: false,[m
+             allowGrouping: false,[m
+             allowResizing: true,[m
+[31m-            width: 150, [m
+[32m+[m[32m            // width: 150,[m[41m [m
+             cellTemplate: function(container, options) {[m
+                 if (options.value) {[m
+                     const tags = options.value;[m
+[36m@@ -160,9 +160,11 @@[m [mconsole.log(error);[m
+             { [m
+                 dataField: "modified", caption: __("Last Updated"), dataType: "datetime", [m
+                 allowGrouping: false, allowSorting: true, sortOrder: "desc", [m
+[32m+[m[32m                alignment:"center",[m[41m[m
+[32m+[m[32m                width:120,[m[41m[m
+                 allowHeaderFiltering: false,[m
+                 headerFilter: { search: { enabled: true } },[m
+[31m-                cellTemplate: (cellElement, cellInfo) => { if (cellInfo.value) { $(cellElement).html(`<span style="font-size:12px;">${frappe.datetime.comment_when(cellInfo.value)}</span>`); }}, [m
+[32m+[m[32m                cellTemplate: (cellElement, cellInfo) => { if (cellInfo.value) { $(cellElement).html(`<span style="font-size:12px;">${frappe.datetime.comment_when(cellInfo.value,true)}</span>`); }},[m[41m [m
+                 format: 'shortDateShortTime'[m
+             },[m
+ ...(!this.list_view_settings?.disable_comment_count?[{[m
+[36m@@ -318,7 +320,7 @@[m [mcellTemplate: (cellElement, cellInfo) => {[m
+              special_column_definitions.unshift({ [m
+                 dataField: status_fieldname, [m
+                 caption: __("Status"), [m
+[31m-                alignment:"center",[m
+[32m+[m[32m                alignment:"left",[m[41m[m
+                 allowFiltering:false,[m
+                 dataType: column_data_type, allowGrouping: true, allowSorting: true, allowHeaderFiltering: true,[m
+                 headerFilter: { [m
+[36m@@ -369,6 +371,7 @@[m [mcellTemplate: (cellElement, cellInfo) => {[m
+             primaryLinkColumn.caption = primaryLinkCaption;[m
+             primaryLinkColumn.allowGrouping = false;[m
+         }[m
+[32m+[m[32m        // primaryLinkColumn.width = 200;[m[41m[m
+         primaryLinkColumn.cellTemplate = (cellElement, cellInfo) => {[m
+             const docname = cellInfo.data.name; [m
+             const display_text = cellInfo.data[primaryLinkColumn.dataField] || docname;[m
+[36m@@ -411,7 +414,16 @@[m [mcellTemplate: (cellElement, cellInfo) => {[m
+                 return deferred.promise();[m
+             },[m
+         });[m
+[32m+[m[32m        let fromMobile =false;[m[41m[m
+[32m+[m[32m        if (window.innerWidth <= 768) {[m[41m[m
+[32m+[m[32m            fromMobile = true;[m[41m[m
+[32m+[m[32m            console.log("Mobile");[m[41m[m
+ [m
+[32m+[m[32m        } else {[m[41m[m
+[32m+[m[32mfromMobile =false;[m[41m [m
+[32m+[m[32mconsole.log("desc");[m[41m[m
+[32m+[m[32m}[m[41m[m
+[32m+[m[41m        [m
+         this.gridInstance = $(grid_div).dxDataGrid({[m
+             dataSource: customDataSource,[m
+             autoNavigateToFocusedRow:false,[m
+[36m@@ -422,12 +434,35 @@[m [mcellTemplate: (cellElement, cellInfo) => {[m
+                 grouping: true,[m
+                 summary: true, [m
+                 groupPaging: true[m
+[31m-            },            [m
+[32m+[m[32m            },[m[41m [m
+[32m+[m[41m      [m
+             columns: dx_columns,[m
+             height: 600,[m
+[31m-            allowColumnReordering: true, allowColumnResizing: true, columnAutoWidth: true, columnResizingMode: "nextColumn",[m
+[31m-            showBorders: true, rowAlternationEnabled: true, hoverStateEnabled: true, wordWrapEnabled: false,[m
+[31m-            filterRow: { visible: true },[m
+[32m+[m[32m            allowColumnReordering: true, allowColumnResizing: true, columnAutoWidth: fromMobile?true: false, columnResizingMode: "nextColumn",[m[41m[m
+[32m+[m[32m            showBorders: true, rowAlternationEnabled: true, hoverStateEnabled: true, wordWrapEnabled: true,[m[41m[m
+[32m+[m[32m            filterRow: {[m[41m[m
+[32m+[m[32m                applyFilter: "auto",[m[41m[m
+[32m+[m[32m                applyFilterText: __("Apply filter"),[m[41m[m
+[32m+[m[32m                betweenEndText: __("End"),[m[41m[m
+[32m+[m[32m                betweenStartText: __("Start"),[m[41m[m
+[32m+[m[32m                operationDescriptions: {[m[41m[m
+[32m+[m[32m                  between: __("Between"),[m[41m[m
+[32m+[m[32m                  contains: __("Contains"),[m[41m[m
+[32m+[m[32m                  endsWith: __("Ends with"),[m[41m[m
+[32m+[m[32m                  equal: __("Equals"),[m[41m[m
+[32m+[m[32m                  greaterThan: __("Greater than"),[m[41m[m
+[32m+[m[32m                  greaterThanOrEqual: __("Greater than or equal to"),[m[41m[m
+[32m+[m[32m                  lessThan: __("Less than"),[m[41m[m
+[32m+[m[32m                  lessThanOrEqual: __("Less than or equal to"),[m[41m[m
+[32m+[m[32m                  notContains: __("Does not contain"),[m[41m[m
+[32m+[m[32m                  notEqual: __("Does not equal"),[m[41m[m
+[32m+[m[32m                  startsWith: __("Starts with")[m[41m[m
+[32m+[m[32m                },[m[41m[m
+[32m+[m[32m                resetOperationText: __("Reset"),[m[41m[m
+[32m+[m[32m                showAllText: __("(ALL)"),[m[41m[m
+[32m+[m[32m                showOperationChooser: true,[m[41m[m
+[32m+[m[32m                visible: true[m[41m[m
+[32m+[m[32m              },[m[41m[m
+             headerFilter: { visible: true, search: { enabled: true } },[m
+             searchPanel: { visible: false},[m
+             groupPanel: { visible: true, emptyPanelText: __("Drag a column header here to group by that column") },[m
+[36m@@ -445,6 +480,19 @@[m [mcellTemplate: (cellElement, cellInfo) => {[m
+                 me.selected_items = e.selectedRowKeys; [m
+                 me.toggle_actions_menu_button(me.selected_items.length > 0); [m
+             },[m
+[32m+[m[32m            onCellPrepared: function(e) {[m[41m[m
+[32m+[m[32m                if (e.rowType === "data") {[m[41m[m
+[32m+[m[32m                    e.cellElement.css({[m[41m[m
+[32m+[m[32m                        'white-space': 'nowrap',[m[41m[m
+[32m+[m[32m                        'overflow': 'hidden',[m[41m[m
+[32m+[m[32m                        'text-overflow': 'ellipsis',[m[41m[m
+[32m+[m[32m                        'word-break': 'keep-all',       // أهم سطر يمنع الكسر عند space[m[41m[m
+[32m+[m[32m                        'word-wrap': 'normal'         // يساعد أيضاً[m[41m[m
+[32m+[m[41m                      [m
+[32m+[m[32m                    });[m[41m[m
+[32m+[m[32m                }[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m,[m[41m            [m
+             onRowClick: (e) => {[m
+                 if (e.event.target.closest('.dx-checkbox') || e.event.target.closest('.like-action')) return;[m
+                 if (e.rowType === "data" && e.data?.name) frappe.set_route('Form', doctype, e.data.name);[m

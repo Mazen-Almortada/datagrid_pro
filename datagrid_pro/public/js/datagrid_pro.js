@@ -105,7 +105,7 @@ console.log(error);
                     caption: __(df.label || frappe.model.unscrub(df.fieldname)),
                     dataType: map_frappe_field_type_to_dx(df.fieldtype),
                     allowGrouping: !["modified", "email", "description", "_liked_by", "comment_count","_assign", "image", "subject", "name", meta.title_field].includes(df.fieldname),
-                    allowHeaderFiltering: !["name"].includes(df.fieldname) && df.fieldtype !=="Check",
+                    allowHeaderFiltering: !["name"].includes(df.fieldname) && df.fieldtype !=="Check" && !(df.fieldtype === "Select" && df.options),
                     allowSorting: true,
                     autoExpandGroup:false,
                     headerFilter: { search: { 
@@ -141,7 +141,7 @@ console.log(error);
             allowSorting: false,
             allowGrouping: false,
             allowResizing: true,
-            width: 150, 
+            // width: 150, 
             cellTemplate: function(container, options) {
                 if (options.value) {
                     const tags = options.value;
@@ -160,9 +160,11 @@ console.log(error);
             { 
                 dataField: "modified", caption: __("Last Updated"), dataType: "datetime", 
                 allowGrouping: false, allowSorting: true, sortOrder: "desc", 
+                alignment:"center",
+                width:120,
                 allowHeaderFiltering: false,
                 headerFilter: { search: { enabled: true } },
-                cellTemplate: (cellElement, cellInfo) => { if (cellInfo.value) { $(cellElement).html(`<span style="font-size:12px;">${frappe.datetime.comment_when(cellInfo.value)}</span>`); }}, 
+                cellTemplate: (cellElement, cellInfo) => { if (cellInfo.value) { $(cellElement).html(`<span style="font-size:12px;">${frappe.datetime.comment_when(cellInfo.value,true)}</span>`); }}, 
                 format: 'shortDateShortTime'
             },
 ...(!this.list_view_settings?.disable_comment_count?[{
@@ -318,7 +320,7 @@ cellTemplate: (cellElement, cellInfo) => {
              special_column_definitions.unshift({ 
                 dataField: status_fieldname, 
                 caption: __("Status"), 
-                alignment:"center",
+                alignment:"left",
                 allowFiltering:false,
                 dataType: column_data_type, allowGrouping: true, allowSorting: true, allowHeaderFiltering: true,
                 headerFilter: { 
@@ -369,6 +371,7 @@ cellTemplate: (cellElement, cellInfo) => {
             primaryLinkColumn.caption = primaryLinkCaption;
             primaryLinkColumn.allowGrouping = false;
         }
+        // primaryLinkColumn.width = 200;
         primaryLinkColumn.cellTemplate = (cellElement, cellInfo) => {
             const docname = cellInfo.data.name; 
             const display_text = cellInfo.data[primaryLinkColumn.dataField] || docname;
@@ -411,7 +414,16 @@ cellTemplate: (cellElement, cellInfo) => {
                 return deferred.promise();
             },
         });
+        let fromMobile =false;
+        if (window.innerWidth <= 768) {
+            fromMobile = true;
+            console.log("Mobile");
 
+        } else {
+fromMobile =false; 
+console.log("desc");
+}
+        
         this.gridInstance = $(grid_div).dxDataGrid({
             dataSource: customDataSource,
             autoNavigateToFocusedRow:false,
@@ -422,12 +434,35 @@ cellTemplate: (cellElement, cellInfo) => {
                 grouping: true,
                 summary: true, 
                 groupPaging: true
-            },            
+            }, 
+      
             columns: dx_columns,
             height: 600,
-            allowColumnReordering: true, allowColumnResizing: true, columnAutoWidth: true, columnResizingMode: "nextColumn",
-            showBorders: true, rowAlternationEnabled: true, hoverStateEnabled: true, wordWrapEnabled: false,
-            filterRow: { visible: true },
+            allowColumnReordering: true, allowColumnResizing: true, columnAutoWidth: fromMobile?true: false, columnResizingMode: "nextColumn",
+            showBorders: true, rowAlternationEnabled: true, hoverStateEnabled: true, wordWrapEnabled: true,
+            filterRow: {
+                applyFilter: "auto",
+                applyFilterText: __("Apply filter"),
+                betweenEndText: __("End"),
+                betweenStartText: __("Start"),
+                operationDescriptions: {
+                  between: __("Between"),
+                  contains: __("Contains"),
+                  endsWith: __("Ends with"),
+                  equal: __("Equals"),
+                  greaterThan: __("Greater than"),
+                  greaterThanOrEqual: __("Greater than or equal to"),
+                  lessThan: __("Less than"),
+                  lessThanOrEqual: __("Less than or equal to"),
+                  notContains: __("Does not contain"),
+                  notEqual: __("Does not equal"),
+                  startsWith: __("Starts with")
+                },
+                resetOperationText: __("Reset"),
+                showAllText: __("(ALL)"),
+                showOperationChooser: true,
+                visible: true
+              },
             headerFilter: { visible: true, search: { enabled: true } },
             searchPanel: { visible: false},
             groupPanel: { visible: true, emptyPanelText: __("Drag a column header here to group by that column") },
@@ -445,6 +480,19 @@ cellTemplate: (cellElement, cellInfo) => {
                 me.selected_items = e.selectedRowKeys; 
                 me.toggle_actions_menu_button(me.selected_items.length > 0); 
             },
+            onCellPrepared: function(e) {
+                if (e.rowType === "data") {
+                    e.cellElement.css({
+                        'white-space': 'nowrap',
+                        'overflow': 'hidden',
+                        'text-overflow': 'ellipsis',
+                        'word-break': 'keep-all',       // أهم سطر يمنع الكسر عند space
+                        'word-wrap': 'normal'         // يساعد أيضاً
+                      
+                    });
+                }
+            }
+,            
             onRowClick: (e) => {
                 if (e.event.target.closest('.dx-checkbox') || e.event.target.closest('.like-action')) return;
                 if (e.rowType === "data" && e.data?.name) frappe.set_route('Form', doctype, e.data.name);
