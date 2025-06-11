@@ -20,7 +20,14 @@ app_license = "mit"
 # 		"has_permission": "datagrid_pro.api.permission.has_app_permission"
 # 	}
 # ]
-
+fixtures = [
+    {"dt":"Custom Field",
+    "filters":[
+        ["module","=","DataGrid Pro"]
+    ]
+        
+        }
+]
 # Includes in <head>
 # ------------------
 

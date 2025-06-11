@@ -81,8 +81,11 @@ frappe.views.ListView = class DevExtremeListView extends frappe.views.ListView {
         this.page.main.append(grid_div);
 
         this.page.main.find(`#externalSearchBox_${doctype.replace(/\s+/g, '_')}`).remove();
-        const $searchBox = $(`<div id="externalSearchBox_${doctype.replace(/\s+/g, '_')}" style="width: 100%; margin-bottom: 8px;"></div>`);
-        this.page.main.find(".page-form.flex").prepend($searchBox);
+        if (this.list_view_settings?.show_search_box) {
+            
+            const $searchBox = $(`<div id="externalSearchBox_${doctype.replace(/\s+/g, '_')}" style="width: 100%; margin-bottom: 8px;"></div>`);
+            this.page.main.find(".page-form.flex").prepend($searchBox);
+        }
 try {
     
     await this.setup_columns();
@@ -527,17 +530,19 @@ console.log("desc");
             }
            
         });
-
-        $(`#externalSearchBox_${doctype.replace(/\s+/g, '_')}`).dxTextBox({
-            placeholder: __("Search..."),
-            mode: "search",
-            valueChangeEvent: "keyup input", 
-            onValueChanged: (e) => {
-                if(this.gridInstance) {
-                    this.gridInstance.searchByText(e.value);
-                }
+if (this.list_view_settings?.show_search_box) {
+    $(`#externalSearchBox_${doctype.replace(/\s+/g, '_')}`).dxTextBox({
+        placeholder: __("Search..."),
+        mode: "search",
+        valueChangeEvent: "keyup input", 
+        onValueChanged: (e) => {
+            if(this.gridInstance) {
+                this.gridInstance.searchByText(e.value);
             }
-        });
+        }
+    });
+}
+       
 
         function map_frappe_field_type_to_dx(ftype) {
             switch (ftype) {
