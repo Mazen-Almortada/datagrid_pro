@@ -395,6 +395,8 @@ cellTemplate: (cellElement, cellInfo) => {
                 });
 
                 loadOptions.select = final_select_fields;
+                const $loader = me.page.main.find(`.${me.grid_wrapper_class} .dot-loader`);
+                $loader.addClass('show');
                 
                 frappe.call({
                     method: "datagrid_pro.api.get_devextreme_list_data", 
@@ -404,6 +406,9 @@ cellTemplate: (cellElement, cellInfo) => {
                         frappe_filters_json: JSON.stringify(frappe_filters) 
                     },
                     callback: (r) => { 
+                        setTimeout(() => { $loader.removeClass('show'); }, 300);
+
+
                         if (r.message && r.message.data !== undefined) { 
                             me.data = r.message.data; 
                             deferred.resolve(r.message); 
@@ -411,6 +416,8 @@ cellTemplate: (cellElement, cellInfo) => {
                             deferred.reject("Invalid API response"); 
                         }},
                     error: (err) => {
+                        setTimeout(() => { $loader.removeClass('show'); }, 300);
+
                         deferred.reject("API call failed");
                     }
                 });
@@ -420,11 +427,9 @@ cellTemplate: (cellElement, cellInfo) => {
         let fromMobile =false;
         if (window.innerWidth <= 768) {
             fromMobile = true;
-            console.log("Mobile");
 
         } else {
 fromMobile =false; 
-console.log("desc");
 }
         
         this.gridInstance = $(grid_div).dxDataGrid({
@@ -496,6 +501,17 @@ console.log("desc");
                 }
             }
 ,            
+onContentReady: function(e) {
+    
+    const $headerPanel = e.element.find(`.dx-datagrid-header-panel`);
+    
+    
+    if ($headerPanel.find('.dot-loader').length === 0) {
+        const loader_html = `<div class="dot-loader"><span></span><span></span><span></span><span></span><span></span></div>`; 
+        $headerPanel.css('position', 'relative');
+        $headerPanel.append(loader_html);
+    }
+},
             onRowClick: (e) => {
                 if (e.event.target.closest('.dx-checkbox') || e.event.target.closest('.like-action')) return;
                 if (e.rowType === "data" && e.data?.name) frappe.set_route('Form', doctype, e.data.name);
@@ -512,7 +528,7 @@ console.log("desc");
                 });
                 e.cancel = true;
             },
-            loadPanel: { enabled: true },
+            loadPanel: { enabled: false },
             noDataText: __("No data to display"),
         }).dxDataGrid("instance");
 
