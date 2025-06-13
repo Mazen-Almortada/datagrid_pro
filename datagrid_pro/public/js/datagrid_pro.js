@@ -122,7 +122,15 @@ console.log(error);
                         },
                 }
                 };
-
+                if (df.fieldtype === 'Check') {
+                    column_definition.trueText = __("Yes");
+                    column_definition.falseText = __("No");
+                    column_definition.groupCellTemplate = function(cellElement, cellInfo) {
+                        const display_text = cellInfo.value ? __("Yes") : __("No");
+                        cellElement.text(`${cellInfo.column.caption}: ${display_text}`);
+                    };
+                    
+                }
                   if (df.fieldtype === "Select" && df.options) {
                     const selectOptions = (typeof df.options === 'string' ? df.options.split('\n') : df.options || [])
                         .filter(opt => opt.trim() !== "")
@@ -322,8 +330,7 @@ cellTemplate: (cellElement, cellInfo) => {
             } 
              special_column_definitions.unshift({ 
                 dataField: status_fieldname, 
-                caption: __("Status"), 
-                alignment:"left",
+                caption: __("Status"),
                 allowFiltering:false,
                 dataType: column_data_type, allowGrouping: true, allowSorting: true, allowHeaderFiltering: true,
                 headerFilter: { 
@@ -333,7 +340,13 @@ cellTemplate: (cellElement, cellInfo) => {
                     const indicator = frappe.get_indicator(cellInfo.data, doctype);
                      if (indicator) { 
                         $(cellElement).html(`<span class="indicator-pill whitespace-nowrap ${indicator[1]}">${__(indicator[0])}</span>`); 
-                    } else { $(cellElement).text(__(cellInfo.value) || ''); }}
+                    } else { $(cellElement).text(__(cellInfo.value) || ''); }},
+
+                groupCellTemplate: function(cellElement, cellInfo) {
+                        const option = status_header_filter_options.find(opt => opt.value === cellInfo.value);
+                        const display_text = option ? option.text : cellInfo.value;
+                        cellElement.text(`${cellInfo.column.caption}: ${display_text}`);
+                    }
             });
         }
         
