@@ -431,7 +431,8 @@ cellTemplate: (cellElement, cellInfo) => {
         } else {
 fromMobile =false; 
 }
-        
+        let isCountEnabled = this.list_view_settings?.disable_count === 0;
+
         this.gridInstance = $(grid_div).dxDataGrid({
             dataSource: customDataSource,
             autoNavigateToFocusedRow:false,
@@ -482,7 +483,10 @@ fromMobile =false;
             }, 
             scrolling: { mode: "standard" },
             paging: { pageSize: 20 },
-            pager: { visible: true, showPageSizeSelector: true, allowedPageSizes: [20, 50, 100, 500], showInfo: true, showNavigationButtons: true },
+            pager: { visible: true,
+                 showPageSizeSelector: true, 
+                 infoText: __("Page {0} of {1} ({2} items)"),
+                 allowedPageSizes: [20, 50, 100, 500], showInfo: isCountEnabled, showNavigationButtons: true },
             selection: { mode: "multiple", deferred: false, showCheckBoxesMode: "always", selectAllMode: "page" },
             onSelectionChanged: (e) => { 
                 me.selected_items = e.selectedRowKeys; 
