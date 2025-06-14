@@ -46,7 +46,9 @@
     transition: opacity 0.3s ease;
     z-index: 10;
   }
-
+  .assignee-popover .popover-body { padding: 8px; }
+  .assignee-popover-item { display: flex; align-items: center;cursor: pointer; }
+  .assignee-popover-item .avatar { margin: 3px; }
   .dot-loader.show {
     opacity: 1;
     visibility: visible;

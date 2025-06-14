@@ -178,6 +178,89 @@ console.log(error);
                 cellTemplate: (cellElement, cellInfo) => { if (cellInfo.value) { $(cellElement).html(`<span style="font-size:12px;">${frappe.datetime.comment_when(cellInfo.value,true)}</span>`); }}, 
                 format: 'shortDateShortTime'
             },
+        
+            { 
+                dataField: "_assign", 
+                caption: "",
+                allowFiltering: false, 
+                allowSorting: false,
+                allowGrouping: false,
+                allowResizing: false,
+                alignment:"center",
+                width: 30,
+                allowHeaderFiltering: false,
+                cellTemplate: (cellElement, cellInfo) => {
+                    let assigned_users = cellInfo.value ? JSON.parse(cellInfo.value) : [];
+                    if (assigned_users.length) {
+                        const $assign_icon = $(`
+                            <div class="assign-indicator" style="cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
+                        `);
+    
+                        let hide_timeout;
+                        $assign_icon.popover({
+                            trigger: "manual",
+                            placement: 'top',
+                            html: true,
+                            template: '<div class="popover assignee-popover" role="tooltip"><div class="arrow"></div><div class="popover-body"></div></div>',
+                            sanitize: false,
+                            content: function() {
+                                let content_html = '<h6>'+__('Assigned To')+'</h6><hr class="my-1">';
+                                assigned_users.forEach(user => {
+                                    const user_info = frappe.user_info[user];
+                                    const fullname = user_info ? user_info.fullname : user;
+                                    content_html += `
+                                        <div class="assignee-popover-item" data-user="${user}">
+                                            ${frappe.avatar(user, 'avatar-small')}
+                                            <span>${fullname}</span>
+                                        </div>
+                                    `;
+                                });
+                                return content_html;
+                            },
+                            container: "body"
+                        });
+    
+                        const show_popover = () => {
+                            clearTimeout(hide_timeout);
+                            $assign_icon.popover('show');
+                            const popover_id = $assign_icon.attr('aria-describedby');
+                            if (popover_id) {
+                                 const $popover = $('#' + popover_id);
+                                 $popover.off('mouseleave').on('mouseleave', hide_popover);
+                                 $popover.off('mouseenter').on('mouseenter', () => clearTimeout(hide_timeout));
+    
+                                 $popover.find('.assignee-popover-item').on('click', function() {
+                                     const user_to_filter = $(this).attr('data-user');
+                                     if (user_to_filter) {
+                                         me.filter_area.add(me.doctype, '_assign', 'like', `%${user_to_filter}%`);
+                                     }
+                                     $assign_icon.popover('hide');
+                                 });
+                            }
+                        };
+    
+                        const hide_popover = () => {
+                            hide_timeout = setTimeout(() => {
+                                $assign_icon.popover('hide');
+                            }, 200);
+                        };
+    
+                        $assign_icon.on('mouseenter', show_popover);
+                        $assign_icon.on('mouseleave', hide_popover);
+                        
+                        
+                        $(cellElement).html($assign_icon); 
+                        cellElement.css('padding','0px');
+                    }
+                }, 
+            },
 ...(!this.list_view_settings?.disable_comment_count?[{
     dataField: "comment_count",
     caption: "",
@@ -369,6 +452,7 @@ cellTemplate: (cellElement, cellInfo) => {
             }
         }
         fields_for_select_option.add(primaryLinkColumnDataField);
+        fields_for_select_option.add("_assign");
 
         let primaryLinkColumn = dx_columns.find(c => c.dataField === primaryLinkColumnDataField);
         const primaryLinkDocField = meta.fields.find(f => f.fieldname === primaryLinkColumnDataField);
@@ -511,8 +595,8 @@ fromMobile =false;
                         'white-space': 'nowrap',
                         'overflow': 'hidden',
                         'text-overflow': 'ellipsis',
-                        'word-break': 'keep-all',       // أهم سطر يمنع الكسر عند space
-                        'word-wrap': 'normal'         // يساعد أيضاً
+                        'word-break': 'keep-all',      
+                        'word-wrap': 'normal'         
                       
                     });
                 }
