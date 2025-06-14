@@ -530,6 +530,7 @@ cellTemplate: (cellElement, cellInfo) => {
 fromMobile =false; 
 }
         let isCountEnabled = this.list_view_settings?.disable_count === 0;
+        let showFilterRow = this.list_view_settings?.show_filter_row === 1;
 
         this.gridInstance = $(grid_div).dxDataGrid({
             dataSource: customDataSource,
@@ -568,7 +569,7 @@ fromMobile =false;
                 resetOperationText: __("Reset"),
                 showAllText: __("(ALL)"),
                 showOperationChooser: true,
-                visible: true
+                visible: showFilterRow
               },
             headerFilter: { visible: true, search: { enabled: true } },
             searchPanel: { visible: false},
