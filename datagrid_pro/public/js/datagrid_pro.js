@@ -77,7 +77,7 @@ frappe.views.ListView = class DevExtremeListView extends frappe.views.ListView {
         const me = this;
 
         this.page.main.find(`.${this.grid_wrapper_class}`).remove();
-        const grid_div = $(`<div class="${this.grid_wrapper_class}" style="margin: 0px;"></div>`);
+        const grid_div = $(`<div class="${this.grid_wrapper_class}" style="margin: 8px;"></div>`);
         this.page.main.append(grid_div);
 
         this.page.main.find(`#externalSearchBox_${doctype.replace(/\s+/g, '_')}`).remove();
@@ -415,6 +415,7 @@ cellTemplate: (cellElement, cellInfo) => {
                 dataField: status_fieldname, 
                 caption: __("Status"),
                 allowFiltering:false,
+                alignment: frappe.boot.lang === "ar"?"right":"left",
                 dataType: column_data_type, allowGrouping: true, allowSorting: true, allowHeaderFiltering: true,
                 headerFilter: { 
                     dataSource: status_header_filter_options.length > 0 ? status_header_filter_options : null,
